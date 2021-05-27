@@ -1,0 +1,5 @@
+To dos:
+- Push and clean up git repo
+- Add baseline to 21_05_27
+- Rerun simulations
+- Run fixed set of analyses
