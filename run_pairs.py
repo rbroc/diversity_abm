@@ -56,6 +56,6 @@ def run_pair(a, opath):
 
 # Run
 if __name__=='__main__':
-    pool = Pool(processes=4)
+    pool = Pool(processes=20)
     pool.starmap(run_pair, zip(agents,
                                [outpath] * len(agents)))
