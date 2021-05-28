@@ -28,7 +28,7 @@ pair_df = pd.read_csv(f'animal_game/models/{date}/sampled_pairs.tsv', sep='\t')
 fnames_1 = [f'animal_game/models/{date}/noised_distance_matrices/' + f 
             for f in pair_df.fname_1.tolist()]
 fnames_2 = [f'animal_game/models/{date}/noised_distance_matrices/' + f 
-            for f in pair_df.fname_1.tolist()]
+            for f in pair_df.fname_2.tolist()]
 afiles_list = list(zip(fnames_1, fnames_2))
 anames_list = [(af[0].split('/')[-1].strip('.tsv'), 
                 af[1].split('/')[-1].strip('.tsv')) for af in afiles_list]
