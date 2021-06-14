@@ -83,16 +83,22 @@ class Interaction:
             turn (int): turn number
             log (df): dataframe containing interaction log'''
         prob_agent, resp = speaker.speak(seed=seed)
-        other = [a.listen(seed, resp) for a in self.agents if a is not speaker]
-        prob = [prob_agent] + [o for o in other]
+        prob = [a.listen(seed, resp) if a is not speaker else prob_agent
+                for a in self.agents]
+        # ADD HERE
+        ndens = [np.sum(a.matrix_backup.data[seed].values < self.threshold)
+                 for a in self.agents]
+        # ADD HERE
+        ndens_current = [np.sum(a.matrix.data[seed].values < self.threshold) + 1
+                         for a in self.agents]
         log = self._append_data(log, speaker, turn, itr, seed, init_seed,
-                                resp, prob)
+                                resp, prob, ndens, ndens_current)
         return log, resp
 
     def _append_data(self, log, agent, turn, itr, seed, init_seed, resp, 
-                     prob):
+                     prob, ndens, ndens_current):
         ''' Append all trial data to the log dataframe'''
-        turn_data = [agent.name, turn, itr, seed, resp, *prob]
+        turn_data = [agent.name, turn, itr, seed, resp, *prob, *ndens, *ndens_current]
         int_data = [self.threshold, self.nr_sim, 
                     self.max_exchanges, init_seed, self.log_id,
                     len(self.agents)]
@@ -133,7 +139,12 @@ class Interaction:
         fpath = self._create_outpath()
         for itr in range(self.nr_sim):
             log = pd.DataFrame(columns=['agent', 'turn', 'iter', 'seed', 'response',
-                                        *['prob' + str(i) for i,a in enumerate(self.agents)],
+                                        *['prob' + str(i) 
+                                          for i,a in enumerate(self.agents)],
+                                        *['ndens' + str(i) 
+                                          for i,a in enumerate(self.agents)],
+                                        *['ndens_current' + str(i) 
+                                          for i,a in enumerate(self.agents)],
                                         'threshold', 'nr_sim', 
                                         'max_exchanges', 'init_seed',
                                         'log_id', 'nr_agents'])
@@ -158,5 +169,3 @@ class Interaction:
                 agent.matrix.data = agent.matrix_backup.data.copy()
         print(f'{self.log_id} done!')
         return log
-
-

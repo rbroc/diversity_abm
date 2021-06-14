@@ -24,7 +24,7 @@ class Agent:
     @property
     def model(self):
         return self.matrix.data
-
+    
     def speak(self, seed, pop=True):
         ''' Picks response word based on cue (seed).
             Returns probability of cue-response association, and response word.

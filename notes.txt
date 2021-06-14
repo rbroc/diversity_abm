@@ -1,5 +1,7 @@
 To dos:
-- Push and clean up git repo
-- Add baseline to 21_05_27
-- Rerun simulations
-- Run fixed set of analyses
+- Include neighborhood density
+- Now prob0 and 1 are good
+- Viz dynamics of exploration to see if there is pattern (especially for high vs. low)
+- Run planned analyses
+- Browse notes
+- Write up

@@ -10,7 +10,7 @@ from animal_game.interaction import Interaction
 from multiprocessing import Pool
 
 # Define date
-date = '21_05_27'
+date = '21_06_11'
 
 # Define key vars
 models = ['animal_game/models/wiki_euclidean_distance.tsv']
@@ -41,7 +41,7 @@ for i in range(len(afiles_list)):
     a1 = Agent(agent_name=anames_list[i][1], 
                matrix_filename=afiles_list[i][1])
     agents.append((a0,a1))
-print(f'{len(agents)} pairs created')
+print(f'{len(agents)} pairs found')
 
 # Main loop
 def run_pair(a, opath):
@@ -56,6 +56,7 @@ def run_pair(a, opath):
 
 # Run
 if __name__=='__main__':
-    pool = Pool(processes=20)
+    pool = Pool(processes=22)
     pool.starmap(run_pair, zip(agents,
                                [outpath] * len(agents)))
+    pool.close()
