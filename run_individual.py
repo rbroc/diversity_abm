@@ -8,7 +8,7 @@ from animal_game.interaction import Interaction
 from multiprocessing import Pool
 
 # Date
-date = '21_06_11'
+date = '21_08_20'
 
 # Load models
 models = ['animal_game/models/wiki_euclidean_distance.tsv']
