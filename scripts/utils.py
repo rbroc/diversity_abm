@@ -62,7 +62,7 @@ RENAME_1 = {'performance': 'performance_a1',
             'noise_level': 'noise_level_a1'}
 
 
-PAIR_LEVEL_DICT = {'pos_gain': 'mean', 
+PAIR_LEVEL_DICT = {'pos_gain': ['mean', lambda x: np.std(x)],
                    'is_gain': ['mean', lambda x: np.std(x)],
                    'amount_gain': ['mean', lambda x: np.std(x)],
                    'noise_level_a0': 'mean',
@@ -77,7 +77,7 @@ PAIR_LEVEL_DICT = {'pos_gain': 'mean',
 
 
 PAIR_LEVEL_NAMES = ['pair', 
-                    'pos_gain', 
+                    'pos_gain_mean', 'pos_gain_std', 
                     'is_gain_mean', 'is_gain_std',
                     'amount_gain_mean', 'amount_gain_std',
                     'noise_level_a0',
