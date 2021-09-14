@@ -1,0 +1,3 @@
+To dos:
+- Move analyses out of animal_game folder
+- Rerun processing through script
