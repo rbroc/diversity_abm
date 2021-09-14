@@ -1,1 +1,3 @@
-animal_game/models/21_05_27/noised_vectors/*
+.ipynb_checkpoints/
+*/__pycache__/
+*/*/__pycache__/
