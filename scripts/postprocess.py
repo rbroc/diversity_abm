@@ -13,6 +13,7 @@ from utils import (get_individual_aggs,
                    get_pair_level_aggregates)
 from multiprocessing import Pool
 from sklearn.preprocessing import MinMaxScaler
+from itertools import product
 
 
 DATE = '21_08_20'
@@ -51,7 +52,7 @@ def _get_unique_named(flist, pdf):
     pool.close()
     unique_named = concat_dfs(results)
     pdf = pdf.merge(unique_named, 
-                    on=['init_seed', 'pair'])
+                    on=['init_seed', 'pair'], how='outer')
     pdf['collective_inhibition'] = pdf['unique_individual'] - \
                                    pdf['unique_pair']
     return pdf
@@ -63,8 +64,7 @@ def _get_originality(iflist, pflist, pdf):
     pool.close()
     wd_orig = concat_dfs(results)
     wd_orig = wd_orig.groupby('word')['count'].sum().reset_index()
-    wd_orig['originality_score'] = 1 / wd_orig['count']
-    wd_orig['originality_score'] = scaler.fit_transform(wd_orig[['originality_score']])
+    wd_orig['originality_score'] = ((240 * 100 * 20) - wd_orig['count']) / (240 * 100 * 20)
     pool = Pool(20)
     results = pool.starmap(get_originality, zip(pflist,
                                                 [wd_orig]*len(pflist),
@@ -72,7 +72,7 @@ def _get_originality(iflist, pflist, pdf):
                                                 [DATE]*len(pflist)))
     pool.close()
     orig_df = concat_dfs(results)
-    pdf = pdf.merge(orig_df, on=['init_seed', 'pair'])
+    pdf = pdf.merge(orig_df, on=['init_seed', 'pair'], how='outer')
     return pdf
 
 
@@ -82,25 +82,60 @@ def postprocess():
     print('*** Computing aggregates ***')
     ia = _get_aggs(get_individual_aggs, fs)
     pa = _get_aggs(get_pair_aggs, pair_fs)
+    
+    # Add all missing trials
+    animals = pa.init_seed.unique().tolist()
+    pairs = pa.pair.unique().tolist()
+    agents = ia.agent_name.unique().tolist()
+    full_df = pd.DataFrame(list(product(pairs, animals)), 
+                           columns=['pair', 
+                                    'init_seed'])
+    full_df['agent_0'] = full_df['pair'].str.split('_').str[:3].str.join('_')
+    full_df['agent_1'] = full_df['pair'].str.split('_').str[3:].str.join('_')
+    pa = pa.merge(full_df, on=['pair', 
+                               'init_seed', 
+                               'agent_0', 
+                               'agent_1'], how='outer')
+    full_df_ind = pd.DataFrame(list(product(agents, animals)), 
+                               columns=['agent_name', 
+                                        'init_seed'])
+    ia = ia.merge(full_df_ind, on=['agent_name', 
+                                   'init_seed'], how='outer')
     pa = _merge_aggs(pa, ia)
+    for c in ['a1', 'a0', 'pair']:
+        pa[f'performance_{c}'] = pa[f'performance_{c}'].fillna(0)
+    
     print('*** Computing collective inhibition metrics ***')
     pa = _get_unique_named(pair_fs, pa)
+
     print('*** Computing originality ***')
     pa = _get_originality(fs, pair_fs, pa)
     
     # Add metrics, compute aggregates, and save
     print('*** Summarizing ***')
     pa = add_metrics(pa)
+    # Add for each pair 
     aggs = get_pair_level_aggregates(pa)
     
     # Save
     print('*** Saving ***')
+    aggs['orig_pair_vs_top_individual'] = np.where(aggs['orig_a0']>aggs['orig_a1'], 
+                                                   aggs['orig_pair']-\
+                                                   aggs['orig_a0'], 
+                                                   aggs['orig_pair']-\
+                                                   aggs['orig_a1']) 
+    aggs['flexibility_pair_vs_top_individual'] = np.where(aggs['flexibility_a0']>\
+                                                          aggs['flexibility_a1'], 
+                                                          aggs['flexibility_speaker']-\
+                                                          aggs['flexibility_a0'], 
+                                                          aggs['flexibility_speaker']-\
+                                                          aggs['flexibility_a1'])
     pa.to_csv(f'{ANALYSES_PATH}/{DATE}/processed.tsv', 
               sep='\t', 
               index=False)
     aggs.to_csv(f'{ANALYSES_PATH}/{DATE}/aggregates.tsv', 
                 sep='\t', 
-                index=False)
+                index=False) 
                             
                             
 if __name__=='__main__':
