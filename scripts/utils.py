@@ -6,74 +6,80 @@ INDIVIDUAL_DICT = {'turn': 'max',
                    'threshold': 'first',
                    'agent': 'first',
                    'init_seed': 'first',
-                   'prob0': 'mean',
-                   'ndens0': 'mean',
-                   'ndens_current0': 'mean',
+                   'prob0': np.nanmean,
+                   'ndens0': np.nanmean,
+                   'ndens_current0': np.nanmean,
                    'response': 'last'}
 
-PAIR_DICT = {'turn':'max', 
+PAIR_DICT = {'turn': 'max', 
              'log_id': 'first',
              'agent_0': 'first',
              'agent_1': 'first',
              'threshold':'first',
              'init_seed': 'first',
-             'prob0': 'mean', 
-             'prob1': 'mean',
-             'jump_speaker': 'mean',
-             'jump_listener': 'mean',
-             'ndens0': 'mean',
-             'ndens1': 'mean',
-             'ndens_current0': 'mean',
-             'ndens_current1':'mean',
+             'prob0': np.nanmean,
+             'prob1': np.nanmean,
+             'jump_speaker': np.nanmean,
+             'jump_listener': np.nanmean,
+             'ndens0': np.nanmean,
+             'ndens1': np.nanmean,
+             'ndens_current0': np.nanmean,
+             'ndens_current1':np.nanmean,
              'response': 'last'}
 
 INDIVIDUAL_NAMES = ['iter', 'performance', 'threshold', 
-                           'agent_name', 'init_seed', 
-                           'mean_jump',
-                           'mean_neighborhood_density',
-                           'mean_neighborhood_density_current',
-                           'last_response']
+                    'agent_name', 'init_seed', 
+                    'flexibility',
+                    'mean_neighborhood_density',
+                    'mean_neighborhood_density_current',
+                    'last_response']
 PAIR_NAMES = ['iter', 'performance', 'pair',
-                     'agent_0', 'agent_1',
-                     'threshold', 'init_seed',
-                     'mean_jump_0',
-                     'mean_jump_1', 
-                     'mean_jump_speaker', 'mean_jump_listener',
-                     'mean_neighborhood_density_0', 
-                     'mean_neighborhood_density_1',
-                     'mean_neighborhood_density_current_0', 
-                     'mean_neighborhood_density_current_1', 
-                     'last_response']
+              'agent_0', 'agent_1',
+              'threshold', 'init_seed',
+              'flexibility_0',
+              'flexibility_1', 
+              'flexibility_speaker', 
+              'flexibility_listener',
+              'mean_neighborhood_density_0', 
+              'mean_neighborhood_density_1',
+              'mean_neighborhood_density_current_0', 
+              'mean_neighborhood_density_current_1', 
+              'last_response']
 
 RENAME_0 = {'performance_x': 'performance_pair',
             'performance_y': 'performance_a0',
             'mean_neighborhood_density': 'neighborhood_density_a0',
             'mean_neighborhood_density_current': 'neighborhood_density_current_a0_individual',
             'noise_level_y': 'noise_level_a0',
-            'mean_jump': 'mean_jump_a0',
+            'flexibility': 'flexibility_a0',
             'last_response_x': 'last_response_pair',
             'last_response_y': 'last_response_a0'}
 
 RENAME_1 = {'performance': 'performance_a1',
             'mean_neighborhood_density': 'neighborhood_density_a1_individual',
             'mean_neighborhood_density_current': 'neighborhood_density_current_a1_individual',
-            'mean_jump': 'mean_jump_a1',
+            'flexibility': 'flexibility_a1',
             'last_response': 'last_response_a1',
             'noise_level': 'noise_level_a1'}
 
 
-PAIR_LEVEL_DICT = {'pos_gain': ['mean', lambda x: np.std(x)],
-                   'is_gain': ['mean', lambda x: np.std(x)],
-                   'amount_gain': ['mean', lambda x: np.std(x)],
-                   'noise_level_a0': 'mean',
-                   'performance_difference_individuals': 'mean',
-                   'performance_best': 'mean',
-                   'performance_pair': ['mean', 'std'],
-                   'mean_jump_speaker': 'mean',
-                   'mean_jump_listener': 'mean',
-                   'orig_pair': 'mean',
-                   'orig_best_difference': 'mean',
-                   'collective_inhibition': 'mean'}
+PAIR_LEVEL_DICT = {'pos_gain': [np.nanmean, lambda x: np.std(x)],
+                   'is_gain': [np.nanmean, lambda x: np.std(x)],
+                   'amount_gain': [np.nanmean, lambda x: np.std(x)],
+                   'noise_level_a0': np.nanmean,
+                   'performance_a0': np.nanmean, # / 240
+                   'performance_a1': np.nanmean, # / 240
+                   'performance_best': np.nanmean,
+                   'performance_pair': [np.nanmean, np.nanstd], # / 240
+                   'flexibility_speaker': np.nanmean,
+                   'flexibility_listener': np.nanmean,
+                   'flexibility_a0': np.nanmean,
+                   'flexibility_a1': np.nanmean,
+                   'orig_pair': np.nanmean,
+                   'orig_best_difference': np.nanmean,
+                   'orig_a0': np.nanmean,
+                   'orig_a1':np.nanmean,
+                   'collective_inhibition': np.nanmean}
 
 
 PAIR_LEVEL_NAMES = ['pair', 
@@ -81,14 +87,19 @@ PAIR_LEVEL_NAMES = ['pair',
                     'is_gain_mean', 'is_gain_std',
                     'amount_gain_mean', 'amount_gain_std',
                     'noise_level_a0',
-                    'performance_difference_individuals', 
+                    'performance_a0',
+                    'performance_a1',
                     'performance_best', 
                     'performance_pair_mean', 
                     'performance_pair_std',
-                    'mean_jump_speaker', 
-                    'mean_jump_listener',
+                    'flexibility_speaker', 
+                    'flexibility_listener',
+                    'flexibility_a0',
+                    'flexibility_a1',
                     'orig_pair',
                     'orig_best_difference',
+                    'orig_a0',
+                    'orig_a1',
                     'collective_inhibition']
 
 
@@ -186,7 +197,7 @@ def _process_originality_df(log, merge_col, idx, wd_orig):
                        left_on='response', 
                        right_on='word').drop('word', axis=1)
     merged = merged.groupby('init_seed').agg({'originality_score': 
-                                              'mean'}).reset_index()
+                                              np.nanmean}).reset_index()
     merged.columns = ['init_seed', f'orig_{idx}']
     return merged
     
@@ -226,14 +237,14 @@ def add_metrics(df):
                         df['performance_best']
     df['pos_gain'] = np.where(df['amount_gain']>0, 
                               df['amount_gain'], 0)
-    df['mean_jump_best_individual'] = np.where(df['performance_best']==\
-                                               df['performance_a0'],
-                                               df['mean_jump_a0'], 
-                                               df['mean_jump_a1'])
-    df['pair_best_jump_difference'] = df['mean_jump_speaker'] - \
-                                      df['mean_jump_best_individual']
-    df['orig_best_difference'] = np.where(df['performance_a1']>\
-                                          df['performance_a0'],
+    df['flexibility_best_individual'] = np.where(df['flexibility_a0']>\
+                                               df['flexibility_a1'],
+                                               df['flexibility_a0'], 
+                                               df['flexibility_a1'])
+    df['pair_best_flexibility_difference'] = df['flexibility_speaker'] - \
+                                      df['flexibility_best_individual']
+    df['orig_best_difference'] = np.where(df['orig_a1']>\
+                                          df['orig_a0'],
                                           df['orig_pair']-df['orig_a1'],
                                           df['orig_pair']-df['orig_a0'],)
     return df
